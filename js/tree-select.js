@@ -4,8 +4,40 @@
 /*globals jQuery */
 (function($, namespace){
 
+  function getObjectProperty(object, path){
+    var property,
+        parts = path.split('.');
+    if(typeof object === 'object' && path){
+      if(parts.length === 1){
+        property = object[parts[0]];
+      }else{
+        property = getObjectProperty(object[parts[0]], parts.slice(1).join('.'));
+      }
+    }
+    return property;
+  }
+
+  function unescape(string){
+    var entityMap = {
+          '&amp;' : '&',
+          '&lt;' : '<',
+          '&gt;' : '>',
+          '&quot;' : '"',
+          '&#x27;' : "'"
+        },
+        regex = new RegExp('(' + Object.keys(entityMap).join('|') + ')', 'g');
+    if(string === null){
+      return '';
+    }else{
+      return (string + '').replace(regex, function(match){
+        return entityMap[match];
+      });
+    }
+  }
+
   // Tree representation 'class' for our data structure.
   var NodeTree = function(options){
+    options = options || {};
     // Maintain flat list of nodes for faster searching
     this.nodes = [];
     // Root node
@@ -23,7 +55,8 @@
           length = this.nodes.length,
           node,
           results = [],
-          regex = new RegExp(search,'i');
+          // Escape the search text so we don't throw exceptions for bad regex patterns
+          regex = new RegExp(search.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1"),'i');
 
       for(i = 0; i < length; i++){
         node = this.nodes[i];
@@ -32,6 +65,19 @@
         }
       }
       return results;
+    },
+
+    findById: function(id){
+      var i,
+          length = this.nodes.length,
+          node = null;
+      for(i = 0; i < length; i++){
+        if(this.nodes[i].id === id){
+          node = this.nodes[i];
+          break;
+        }
+      }
+      return node;
     },
 
     _transformNode: function(node){
@@ -65,6 +111,7 @@
       for(i = 0; i < length; i++){
         currNode = nodes[i];
         if(currNode.parentId === parentId){
+          currNode.depth = node.depth + 1;
           node.children.push(currNode);
           currNode.parent = node;
         }else if(currNode.id !== node.id){
@@ -84,7 +131,8 @@
       // New root node
       this.root = {
         children: [],
-        parent: null
+        parent: null,
+        depth: -1
       };
 
       this.nodes = this._transformNodes(nodes);
@@ -104,6 +152,7 @@
 
   // 'Class' for rendering the component
   var TreeSelect = function($el, options){
+    options = options || {};
     this.$proxyEl = $el;
     this.$proxyEl.hide();
     this.options = options;
@@ -117,17 +166,32 @@
       this.nodeTree.build(options.data);
       this.populateProxy();
     }else if(options.dataUrl){
-
+      $.ajax({
+        url: options.dataUrl,
+        dataType: 'json'
+      }).done($.proxy(function(data){
+        if(this.options.dataPath){
+          this.nodeTree.build(getObjectProperty(data, this.options.dataPath));
+        }else{
+          this.nodeTree.build(data);
+        }
+        this.populateProxy();
+      },this));
     }else{
       this.nodeTree.build(this.getNodesFromProxy());
-      this.updateSelectionFromProxy();
+      this.selection = this.getSelectionFromProxy();
     }
 
     this.render();
+    this.renderSelection();
     this.bindEvents();
   };
 
   $.extend(TreeSelect.prototype, {
+
+    remove: function(){
+      this.$el.remove();
+    },
 
     render: function(){
       this.$el = $('<div/>');
@@ -143,7 +207,7 @@
       this.$el.on('mouseenter', '.dropdown-menu', $.proxy(this.onDropdownMouseEnter, this));
       this.$el.on('mouseleave', '.dropdown-menu', $.proxy(this.onDropdownMouseLeave, this));
       this.$el.on('mouseover', '.dropdown-menu > li > a', $.proxy(this.onResultOver, this));
-      this.$el.on('click', '.dropdown-menu > li > a', $.proxy(this.onResultClick, this));
+      this.$el.on('click', '.dropdown-menu > li:not(.disabled) > a', $.proxy(this.onResultClick, this));
     },
 
     onDropdownMouseEnter: function(evt){
@@ -175,7 +239,6 @@
             if($el.position().top < 0){
               $dropdown.scrollTop($dropdown.scrollTop() + $el.position().top);
             }
-
           }
           break;
         // Down arrow
@@ -203,10 +266,16 @@
         // Enter
         case 13:
           if(this.hoverIdx !== -1){
-            this.$el.find('input[type="text"]').val('');
-            this.selectNode(this.searchResults[this.hoverIdx]);
-            this.hideSearchResults(true);
-            this.renderSelection();
+            var node = this.searchResults[this.hoverIdx];
+            if(this.options.minDepth === false){
+              this.$el.find('input[type="text"]').val('');
+              this.selectNode(node);
+              this.hideSearchResults(true);
+            }else if(this.options.minDepth <= node.depth){
+              this.$el.find('input[type="text"]').val('');
+              this.selectNode(node);
+              this.hideSearchResults(true);
+            }
           }
           break;
         // Esc
@@ -226,6 +295,11 @@
       };
     },
 
+    selectNode: function(node){
+      this.renderSelection();
+      this.updateProxySelection();
+    },
+
     onSearchBlur: function(evt){
       if(!this.dropdownHasMouse){
         this.hideSearchResults(true);
@@ -235,10 +309,8 @@
     onResultClick: function(evt){
       evt.preventDefault();
       this.selectNode($(evt.currentTarget).data('node'));
-      this.updateProxySelection();
       this.$el.find('input[type="text"]').val("");
       this.hideSearchResults(evt);
-      this.renderSelection();
     },
 
     renderControl: function(){
@@ -288,11 +360,17 @@
       $link.append($part);
       $item.append($link);
       $link.data('node', result);
+      if(this.options.minDepth !== false){
+        if(result.depth < this.options.minDepth){
+          $item.addClass('disabled');
+        }
+      }
       return $item;
     },
 
     showSearchResults: function(){
       this.$el.find('ul.dropdown-menu').show();
+      this.$el.find('ul.dropdown-menu').scrollTop(0);
     },
 
     hideSearchResults: function(shouldBlur){
@@ -301,30 +379,36 @@
 
     updateProxySelection: function(){
       var length = this.selection.length,
+          valueKey = this.options.valueKey,
           i, item;
       this.$proxyEl.find('option').removeAttr('selected');
       for(i = 0; i < length; i++){
         item = this.selection[i];
-        this.$proxyEl.find('option[value="' + item.id + '"]').attr('selected', 'selected');
+        this.$proxyEl.find('option[value="' + item[valueKey] + '"]').attr('selected', 'selected');
       }
     },
 
     populateProxy: function(){
       var nodes = this.nodeTree.nodes,
           length = nodes.length,
+          valueKey = this.options.valueKey,
           i, item, $item;
+      $item = $('<option/>');
+      $item.attr('value','');
+      this.$proxyEl.append($item);
       for(i = 0; i < length; i++){
         item = nodes[i];
+
         $item = $('<option/>');
-        $item.attr('value', item.id);
+        $item.attr('value', item[valueKey]);
         $item.html(item.name);
+
         this.$proxyEl.append($item);
       }
     },
 
     getNodesFromProxy: function(){
-      var nodes = [],
-          node;
+      var nodes = [];
       this.$proxyEl.find('option').each(function(){
         nodes.push({
           name: $(this).html(),
@@ -336,7 +420,18 @@
       return nodes;
     },
 
-    updateSelectionFromProxy: function(){
+    getSelectionFromProxy: function(){
+      var selected = [],
+          nodeTree = this.nodeTree,
+          node;
+      //this.$proxyEl.find('option:selected');
+      this.$proxyEl.find('option:selected').each(function(){
+        node = nodeTree.findById(parseInt($(this).val(),10));
+        if(node){
+          selected.push(node);
+        }
+      });
+      return selected;
 
     },
 
@@ -411,6 +506,7 @@
       }else{
         this.selection = [];
       }
+      TreeSelect.prototype.selectNode.call(this, node);
     },
 
     hideSearchResults: function(shouldBlur){
@@ -422,13 +518,20 @@
     },
 
     renderSelection: function(){
-      this.$el.find('.btn-title').html(this.selection[0].name);
+      if(this.selection.length > 0){
+        this.$el.find('.btn-title').html(this.selection[0].name);
+        this.$el.find('.btn-title').attr('title', unescape(this.nodeTree.getNodePath(this.selection[0]).join(' / ')));
+      }else{
+        this.$el.find('.btn-title').html('');
+        this.$el.find('.btn-title').attr('title', '');
+      }
     }
   });
 
   // This 'class' handles rendering a multiple select
   var TreeSelectMulti = function($el, options){
     TreeSelect.call(this, $el, options);
+    $el.attr('multiple','multiple');
   };
 
   $.extend(TreeSelectMulti.prototype, TreeSelect.prototype, {
@@ -469,6 +572,7 @@
           this.selection.push(node);
         }
       }
+      TreeSelect.prototype.selectNode.call(this, node);
     },
 
     deselectNode: function(node){
@@ -476,6 +580,7 @@
       if(idx !== -1){
         this.selection.splice(idx, 1);
       }
+      this.updateProxySelection();
       this.renderSelection();
     },
 
@@ -494,6 +599,7 @@
           $removeBtn = $('<button/>');
       $item.addClass('list-group-item');
       $item.html(item.name);
+      $item.attr('title', unescape(this.nodeTree.getNodePath(item).join(' / ')));
       $removeBtn.addClass('btn btn-danger btn-xs pull-right remove-btn');
       $removeBtn.append('<i class="glyphicon glyphicon-remove"/>');
 
@@ -506,6 +612,9 @@
   var defaults = {
     multiSelect: false,
     searchPlaceholder: 'search',
+    valueKey: 'id',
+    nameKey: 'name',
+    minDepth: false,
     transformData: function(data){
       return data;
     }
@@ -515,10 +624,15 @@
     var settings = $.extend({}, defaults, options);
 
     return this.each(function(){
-      // this.nodeTreeView = new NodeTreeView($(this), settings);
+      if(this.selectView){
+        // Remove the old component
+        this.selectView.remove();
+      }
       if(settings.multiSelect){
+        $(this).attr('multiple','multiple');
         this.selectView = new TreeSelectMulti($(this), settings);
       }else{
+        $(this).removeAttr('multiple');
         this.selectView = new TreeSelectSingle($(this), settings);
       }
     });

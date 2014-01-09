@@ -15,11 +15,16 @@ em::after{
 }
 
 .tree-select .btn-title{
-  padding-right: 5%;
+  margin-right: 2%;
   display: inline-block;
-  width: 95%;
+  width: 96%;
+  text-align: left;
 }
 
+.tree-select .btn > input{
+  width: 96%;
+  margin-right: 2%;
+}
 .tree-select .dropdown-menu{
   max-height: 300px;
   overflow-y: auto;
@@ -30,4 +35,9 @@ em::after{
   color: #262626;
   text-decoration: none;
   background-color: #f5f5f5;
+}
+
+.tree-select .dropdown-menu > li.disabled > a.hover{
+  color: #999999;
+  background-color: transparent;
 }
