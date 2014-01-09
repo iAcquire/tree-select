@@ -532,6 +532,7 @@
   var TreeSelectMulti = function($el, options){
     TreeSelect.call(this, $el, options);
     $el.attr('multiple','multiple');
+    this.$el.addClass('multiple');
   };
 
   $.extend(TreeSelectMulti.prototype, TreeSelect.prototype, {

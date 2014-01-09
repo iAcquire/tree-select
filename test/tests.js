@@ -146,6 +146,22 @@ test("Selection", function(){
   equal($('div.tree-select div.btn.btn-default span.btn-title').html(), "parent 1", "Button title is rendered properly");
 });
 
+test("Results", function(){
+  var component = new TreeSelectSingle($('#qunit-fixture > select'), {data: this.nodes, valueKey: 'id'}),
+      $input = $('.tree-select input');
+  $input.val('child');
+  component.performSearch();
+  equal($('.dropdown-menu:visible').length, 1, "Dropdown is visible");
+  equal($('.dropdown-menu li').length, 4, "Correct number of results are rendered");
+  $input.val('');
+  component.performSearch();
+  equal($('.dropdown-menu:visible').length, 0, "Dropdown is NOT visible");
+  $input.val('parent');
+  component.performSearch();
+  equal($('.dropdown-menu:visible').length, 1, "Dropdown is visible");
+  equal($('.dropdown-menu li').length, 2, "Correct number of results are rendered");
+});
+
 module('TreeSelectMulti', {
   setup: function(){
     this.nodes = [
@@ -187,4 +203,40 @@ test("Selection", function(){
   equal($('#qunit-fixture > select > option').filter(':selected').length, 2, "Number of selected items is correct");
   equal($('#qunit-fixture > select > option').filter(':selected:first').attr('value'),1, "First item is selected correctly");
   equal($('#qunit-fixture > select > option').filter(':selected:eq(1)').attr('value'),2, "Second item is selected correctly");
+});
+
+test("Results", function(){
+  var component = new TreeSelectMulti($('#qunit-fixture > select'), {data: this.nodes, valueKey: 'id'}),
+      $input = $('.tree-select input');
+  $input.val('child');
+  component.performSearch();
+  equal($('.dropdown-menu:visible').length, 1, "Dropdown is visible");
+  equal($('.dropdown-menu li').length, 4, "Correct number of results are rendered");
+  $input.val('');
+  component.performSearch();
+  equal($('.dropdown-menu:visible').length, 0, "Dropdown is NOT visible");
+  $input.val('parent');
+  component.performSearch();
+  equal($('.dropdown-menu:visible').length, 1, "Dropdown is visible");
+  equal($('.dropdown-menu li').length, 2, "Correct number of results are rendered");
+});
+
+module("Plugin", {
+  setup: function(){
+
+  },
+  teardown: function(){
+
+  }
+});
+
+test("Plugin", function(){
+  notEqual($.fn.treeSelect, undefined, "Plugin is exposed");
+  $('#qunit-fixture > select').treeSelect();
+  equal($('.tree-select').length, 1, "Plugin renders a component");
+  $('#qunit-fixture > select').treeSelect({multiSelect: true});
+  equal($('.tree-select.multiple').length, 1, "Plugin renders correct component");
+  $('#qunit-fixture > select').treeSelect({multiSelect: false});
+  equal($('.tree-select.multiple').length, 0, "Plugin renders correct component");
+  equal($('.tree-select').length, 1, "Plugin renders correct component");
 });
