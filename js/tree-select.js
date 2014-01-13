@@ -162,22 +162,20 @@
     this.selection = [];
     this.searchResults = [];
 
+    this.searchTimer = null;
+
+    this.hasData = false;
+
     if(options.data){
+      this.hasData = true;
       this.nodeTree.build(options.data);
       this.populateProxy();
     }else if(options.dataUrl){
-      $.ajax({
-        url: options.dataUrl,
-        dataType: 'json'
-      }).done($.proxy(function(data){
-        if(this.options.dataPath){
-          this.nodeTree.build(getObjectProperty(data, this.options.dataPath));
-        }else{
-          this.nodeTree.build(data);
-        }
-        this.populateProxy();
-      },this));
+      if(!options.delayLoad){
+        this.loadXHRData(options.dataUrl);
+      }
     }else{
+      this.hasData = true;
       this.nodeTree.build(this.getNodesFromProxy());
       this.selection = this.getSelectionFromProxy();
     }
@@ -188,6 +186,24 @@
   };
 
   $.extend(TreeSelect.prototype, {
+
+    loadXHRData: function(dataUrl, searchAfter){
+      $.ajax({
+        url: dataUrl,
+        dataType: 'json'
+      }).done($.proxy(function(data){
+        if(this.options.dataPath){
+          this.nodeTree.build(getObjectProperty(data, this.options.dataPath));
+        }else{
+          this.nodeTree.build(data);
+        }
+        this.populateProxy();
+        this.hasData = true;
+        if(searchAfter === true){
+          this.performSearch();
+        }
+      },this));
+    },
 
     remove: function(){
       this.$el.remove();
@@ -290,7 +306,10 @@
           break;
         default:
           this.hoverIdx = 0;
-          this.performSearch();
+          if(this.searchTimer){
+            clearTimeout(this.searchTimer);
+          }
+          this.searchTimer = setTimeout($.proxy(this.performSearch, this), this.options.searchDelay);
           break;
       };
     },
@@ -322,10 +341,16 @@
     },
 
     renderResults: function(results, search){
-      var $list = $('ul.dropdown-menu',this.$el),
+      var $list = this.$el.find('ul.dropdown-menu'),
+          //$list = $('<ul/>'),
+          $after = $list.prev(),
           $item,
           length = results.length,
           i;
+
+      // Detach the list from the DOM so we don't cause a ton of reflows
+      $list.detach();
+
       $list.find('li').remove();
       if(length === 0){
         $item = $('<li/>');
@@ -341,6 +366,8 @@
           $list.append($item);
         }
       }
+      // Re-insert the list
+      $list.insertAfter($after);
     },
 
     renderResult: function(result){
@@ -369,8 +396,9 @@
     },
 
     showSearchResults: function(){
-      this.$el.find('ul.dropdown-menu').show();
-      this.$el.find('ul.dropdown-menu').scrollTop(0);
+      var $dropdown = this.$el.find('ul.dropdown-menu');
+      $dropdown.show();
+      $dropdown.scrollTop(0);
     },
 
     hideSearchResults: function(shouldBlur){
@@ -395,12 +423,14 @@
           i, item, $item;
       $item = $('<option/>');
       $item.attr('value','');
+      $item.value = '';
       this.$proxyEl.append($item);
       for(i = 0; i < length; i++){
         item = nodes[i];
 
         $item = $('<option/>');
         $item.attr('value', item[valueKey]);
+        // $item.value = item[valueKey];
         $item.html(item.name);
 
         this.$proxyEl.append($item);
@@ -412,7 +442,7 @@
       this.$proxyEl.find('option').each(function(){
         nodes.push({
           name: $(this).html(),
-          id: parseInt($(this).attr('value'), 10),
+          id: parseInt(this.value, 10),
           parentId: $(this).data('parent'),
           selected: $(this).attr('selected')
         });
@@ -424,7 +454,6 @@
       var selected = [],
           nodeTree = this.nodeTree,
           node;
-      //this.$proxyEl.find('option:selected');
       this.$proxyEl.find('option:selected').each(function(){
         node = nodeTree.findById(parseInt($(this).val(),10));
         if(node){
@@ -436,8 +465,11 @@
     },
 
     performSearch: function(){
-      var search = this.$el.find('input[type="text"]').val();
-      if(search){
+      var search = this.$el.find('input[type="text"]').val(),
+          searchThreshold = this.options.searchThreshold || 1;
+      if(!this.hasData && this.options.delayLoad && this.options.dataUrl){
+        this.loadXHRData(this.options.dataUrl, true);
+      }else if(search && search.length >= searchThreshold){
         this.searchResults = this.nodeTree.search(search);
         this.renderResults(this.searchResults, search);
         this.showSearchResults();
@@ -459,7 +491,7 @@
       var $wrapper = $('<div/>'),
           $button = $('<div/>'),
           $caret = $('<span/>'),
-          $input = $('<input/>'),
+          $input = $('<input type="text"/>'),
           $title = $('<span/>'),
           $dropdown = $('<ul/>');
 
@@ -468,7 +500,6 @@
       $title.addClass('btn-title');
       $caret.addClass('caret');
       $input.addClass('form-control input-sm');
-      $input.attr('type','text');
       $input.attr('placeholder', this.options.searchPlaceholder);
       $input.hide();
       $button.append($input);
@@ -483,12 +514,19 @@
     bindEvents: function(){
       TreeSelect.prototype.bindEvents.call(this);
       this.$el.on('click', '.btn', $.proxy(this.selectButtonClick, this));
+      this.$el.on('click', '.glyphicon-remove', $.proxy(this.clearButtonClick, this));
+    },
+
+    clearButtonClick: function(evt){
+      evt.preventDefault();
+      evt.stopPropagation();
+      this.selectNode(null);
     },
 
     selectButtonClick: function(evt){
       evt.preventDefault();
-      $('input', this.$el).show().focus();
-      $('.btn-title', this.$el).hide();
+      this.$el.find('input').show().focus();
+      this.$el.find('.btn-title').hide();
     },
 
     onSearchBlur: function(evt){
@@ -518,12 +556,16 @@
     },
 
     renderSelection: function(){
+      var $btnTitle = this.$el.find('.btn-title');
       if(this.selection.length > 0){
-        this.$el.find('.btn-title').html(this.selection[0].name);
-        this.$el.find('.btn-title').attr('title', unescape(this.nodeTree.getNodePath(this.selection[0]).join(' / ')));
+        $btnTitle.html(this.selection[0].name);
+        if(this.options.allowSingleDeselect){
+          $btnTitle.append($('<span/>').addClass('glyphicon glyphicon-remove pull-right'));
+        }
+        $btnTitle.attr('title', unescape(this.nodeTree.getNodePath(this.selection[0]).join(' / ')));
       }else{
-        this.$el.find('.btn-title').html('');
-        this.$el.find('.btn-title').attr('title', '');
+        $btnTitle.html('');
+        $btnTitle.attr('title', '');
       }
     }
   });
@@ -549,7 +591,7 @@
 
     renderControl: function(){
       var $wrapper = $('<ul/>'),
-          $input = $('<input/>'),
+          $input = $('<input type="text"/>'),
           $item = $('<li/>'),
           $dropdown = $('<ul/>'),
           $container = $('<div/>');
@@ -561,7 +603,6 @@
       $wrapper.addClass('list-group');
       $wrapper.append($item);
       $input.addClass('form-control input-sm');
-      $input.attr('type','text');
       $input.attr('placeholder', this.options.searchPlaceholder);
       $dropdown.addClass('dropdown-menu');
       this.$el.append($wrapper);
@@ -611,11 +652,15 @@
   });
 
   var defaults = {
+    searchThreshold: 2,
+    searchDelay: 250,
+    delayLoad: false,
     multiSelect: false,
     searchPlaceholder: 'search',
     valueKey: 'id',
     nameKey: 'name',
     minDepth: false,
+    allowSingleDeselect: false,
     transformData: function(data){
       return data;
     }
