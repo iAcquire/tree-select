@@ -32,6 +32,7 @@ em::after{
   width: 96%;
   margin-right: 2%;
 }
+
 .tree-select .dropdown-menu{
   max-height: 300px;
   overflow-y: auto;
