@@ -327,7 +327,7 @@
 
     onResultClick: function(evt){
       evt.preventDefault();
-      this.selectNode($(evt.currentTarget).data('node'));
+      this.selectNode(this.searchResults[$(evt.currentTarget).parent().index()]);
       this.$el.find('input[type="text"]').val("");
       this.hideSearchResults(evt);
     },
@@ -342,27 +342,20 @@
 
     renderResults: function(results, search){
       var $list = this.$el.find('ul.dropdown-menu'),
-          //$list = $('<ul/>'),
           $after = $list.prev(),
           $item,
           length = results.length,
           i;
-
       // Detach the list from the DOM so we don't cause a ton of reflows
       $list.detach();
+      $list.empty();
 
-      $list.find('li').remove();
       if(length === 0){
-        $item = $('<li/>');
-        $item.addClass('dropdown-header');
-        $item.html('No results found for: ' + search);
+        $item = $('<li class="dropdown-header"> No results found for: ' + search + '</li>');
         $list.append($item);
       }else{
         for(i = 0; i < length; i++){
-          $item = this.renderResult(results[i]);
-          if(i === this.hoverIdx){
-            $item.find('a').addClass('hover');
-          }
+          $item = this.renderResult(results[i], i);
           $list.append($item);
         }
       }
@@ -370,23 +363,23 @@
       $list.insertAfter($after);
     },
 
-    renderResult: function(result){
-      var $item = $('<li/>'),
-          $link = $('<a/>'),
-          $part,
+    renderResult: function(result, idx){
+      var $item,
           path = this.nodeTree.getNodePath(result),
-          length = path.length,
-          i;
-      for(i = 0; i < length - 1; i++){
-        $part = $('<em/>');
-        $part.html(path[i]);
-        $link.append($part);
+          parts = [];
+          length = path.length;
+      for(i = 0; i < length; i++){
+        if(i == length - 1){
+          parts.push('<strong>' + path[i] + '</strong>');
+        }else{
+          parts.push('<em>' + path[i] + '</em>')
+        }
       }
-      $part = $('<strong/>');
-      $part.html(path[length -1]);
-      $link.append($part);
-      $item.append($link);
-      $link.data('node', result);
+
+      $item = $('<li><a>' + parts.join(' ') + '</a></li>');
+      if(idx === this.hoverIdx){
+        $item.find('a').addClass('hover');
+      }
       if(this.options.minDepth !== false){
         if(result.depth < this.options.minDepth){
           $item.addClass('disabled');
@@ -421,18 +414,11 @@
           length = nodes.length,
           valueKey = this.options.valueKey,
           i, item, $item;
-      $item = $('<option/>');
-      $item.attr('value','');
-      $item.value = '';
+      $item = $('<option value=""></option>');
       this.$proxyEl.append($item);
       for(i = 0; i < length; i++){
         item = nodes[i];
-
-        $item = $('<option/>');
-        $item.attr('value', item[valueKey]);
-        // $item.value = item[valueKey];
-        $item.html(item.name);
-
+        $item = $('<option value="' + item[valueKey] + '">' + item.name + '</option>');
         this.$proxyEl.append($item);
       }
     },
@@ -508,6 +494,7 @@
       $wrapper.append($button);
       $dropdown.addClass('dropdown-menu');
       $wrapper.append($dropdown);
+
       this.$el.append($wrapper);
     },
 
