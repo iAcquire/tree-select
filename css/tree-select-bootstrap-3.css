@@ -1,4 +1,4 @@
-em::after{
+.tree-select em::after{
   content: ' / ';
 }
 
@@ -16,12 +16,10 @@ em::after{
   width: 96%;
   text-align: left;
   overflow: hidden;
-  height: 18px;
   text-overflow: ellipsis;
-}
-
-.tree-select .caret{
-  margin-top: -5px;
+  height: 30px;
+  vertical-align: middle;
+  padding-top: 5px;
 }
 
 .tree-select .btn-title .glyphicon-remove{
@@ -32,12 +30,12 @@ em::after{
   width: 96%;
   margin-right: 2%;
 }
-
 .tree-select .dropdown-menu{
   max-height: 300px;
   overflow-y: auto;
   min-width: 100%;
 }
+
 
 .tree-select .dropdown-menu > li > a.hover{
   color: #262626;
