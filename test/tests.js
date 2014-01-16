@@ -162,6 +162,33 @@ test("Results", function(){
   equal($('.dropdown-menu li').length, 2, "Correct number of results are rendered");
 });
 
+test("Events", function(){
+  var component = new TreeSelectSingle($('#qunit-fixture > select'), {data: this.nodes, valueKey: 'id', searchDelay: 0}),
+    $input = $('.tree-select input'),
+    $btn = $('.tree-select .btn.btn-default');
+  equal($('#qunit-fixture .tree-select input').filter(':visible').length, 0, 'Input is not visible');
+  $btn.trigger('click');
+  equal($('#qunit-fixture .tree-select input').filter(':visible').length, 1, 'Input is visible');
+  equal($('#qunit-fixture .tree-select .dropdown-menu').filter(':visible').length, 0, 'Dropdown is not visible');
+  $input.val('1');
+  $input.trigger({type: 'keyup', which: 49});
+  equal($('#qunit-fixture .tree-select .dropdown-menu').filter(':visible').length, 1, 'Dropdown is visible');
+  equal($('#qunit-fixture .tree-select .dropdown-menu a:first').hasClass('hover'), true,'First element is "hovered"');
+  $input.trigger({type: 'keydown', which: 40});
+  equal($('#qunit-fixture .tree-select .dropdown-menu a:first').hasClass('hover'), false, 'First element is not "hovered"');
+  equal($('#qunit-fixture .tree-select .dropdown-menu a:eq(1)').hasClass('hover'), true, 'Next element is "hovered"');
+  $input.trigger({type: 'keydown', which: 38});
+  equal($('#qunit-fixture .tree-select .dropdown-menu a:first').hasClass('hover'), true, 'First element is "hovered"');
+  equal($('#qunit-fixture .tree-select .dropdown-menu a:eq(1)').hasClass('hover'), false, 'Next element is not "hovered"');
+  $input.trigger({type: 'keyup', which: 27});
+  equal($('#qunit-fixture .tree-select .dropdown-menu').filter(':visible').length, 0, 'Dropdown is not visible');
+
+  $('#qunit-fixture .tree-select .dropdown-menu a:first').trigger('click');
+  equal(component.selection.length, 1, 'Item is selected');
+  equal(component.selection[0].id, 1, 'Item selected is correct');
+  equal($('#qunit-fixture .tree-select .dropdown-menu').filter(':visible').length, 0, 'Dropdown is not visible');
+});
+
 module('TreeSelectMulti', {
   setup: function(){
     this.nodes = [

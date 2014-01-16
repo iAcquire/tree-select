@@ -309,7 +309,11 @@
           if(this.searchTimer){
             clearTimeout(this.searchTimer);
           }
-          this.searchTimer = setTimeout($.proxy(this.performSearch, this), this.options.searchDelay);
+          if(this.options.searchDelay){
+            this.searchTimer = setTimeout($.proxy(this.performSearch, this), this.options.searchDelay);
+          }else{
+            this.performSearch();
+          }
           break;
       };
     },
@@ -493,6 +497,7 @@
       $button.append($caret);
       $wrapper.append($button);
       $dropdown.addClass('dropdown-menu');
+      $dropdown.hide();
       $wrapper.append($dropdown);
 
       this.$el.append($wrapper);
@@ -592,6 +597,7 @@
       $input.addClass('form-control input-sm');
       $input.attr('placeholder', this.options.searchPlaceholder);
       $dropdown.addClass('dropdown-menu');
+      $dropdown.hide();
       this.$el.append($wrapper);
     },
 
