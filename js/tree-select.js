@@ -42,8 +42,8 @@
     this.nodes = [];
     // Root node
     this.root = null;
-    this.searchKey = 'name';
-    this.nameKey = 'name';
+    this.searchKey = options.nameKey || 'name';
+    this.nameKey = options.nameKey || 'name';
     this.transformData = options.transformData || null;
   };
 
@@ -417,12 +417,13 @@
       var nodes = this.nodeTree.nodes,
           length = nodes.length,
           valueKey = this.options.valueKey,
+          nameKey = this.options.nameKey,
           i, item, $item;
       $item = $('<option value=""></option>');
       this.$proxyEl.append($item);
       for(i = 0; i < length; i++){
         item = nodes[i];
-        $item = $('<option value="' + item[valueKey] + '">' + item.name + '</option>');
+        $item = $('<option value="' + item[valueKey] + '">' + item[nameKey] + '</option>');
         this.$proxyEl.append($item);
       }
     },
@@ -550,7 +551,7 @@
     renderSelection: function(){
       var $btnTitle = this.$el.find('.btn-title');
       if(this.selection.length > 0){
-        $btnTitle.html(this.selection[0].name);
+        $btnTitle.html(this.selection[0][this.options.nameKey]);
         if(this.options.allowSingleDeselect){
           $btnTitle.append($('<span/>').addClass('glyphicon glyphicon-remove pull-right'));
         }
@@ -633,7 +634,7 @@
       var $item = $('<li/>'),
           $removeBtn = $('<button/>');
       $item.addClass('list-group-item');
-      $item.html(item.name);
+      $item.html(item[this.options.nameKey]);
       $item.attr('title', unescape(this.nodeTree.getNodePath(item).join(' / ')));
       $removeBtn.addClass('btn btn-danger btn-xs pull-right remove-btn');
       $removeBtn.append('<i class="glyphicon glyphicon-remove"/>');
@@ -652,6 +653,7 @@
     searchPlaceholder: 'search',
     valueKey: 'id',
     nameKey: 'name',
+    searchKey: 'name',
     minDepth: false,
     allowSingleDeselect: false,
     transformData: function(data){
