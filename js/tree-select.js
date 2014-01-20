@@ -433,7 +433,7 @@
       this.$proxyEl.find('option').each(function(){
         nodes.push({
           name: $(this).html(),
-          id: parseInt(this.value, 10),
+          id: $(this).data('id') || parseInt(this.value, 10),
           parentId: $(this).data('parent'),
           selected: $(this).attr('selected')
         });
