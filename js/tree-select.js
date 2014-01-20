@@ -429,14 +429,25 @@
     },
 
     getNodesFromProxy: function(){
-      var nodes = [];
+      var nodes = [],
+          node;
       this.$proxyEl.find('option').each(function(){
-        nodes.push({
-          name: $(this).html(),
-          id: $(this).data('id') || parseInt(this.value, 10),
-          parentId: $(this).data('parent'),
-          selected: $(this).attr('selected')
-        });
+        node = $(this).data();
+        if(typeof node.id === 'undefined'){
+          node.id = parseInt(this.value, 10);
+        }
+        if(typeof node.name === 'undefined'){
+          node.name = $(this).html();
+        }
+        node.selected = $(this).attr('selected');
+        if(node.parent){
+          node.parentId = node.parent;
+        }else{
+          node.parentId = 0;
+        }
+        delete node.parent;
+
+        nodes.push(node);
       });
       return nodes;
     },
