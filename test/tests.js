@@ -140,9 +140,10 @@ test("Component removal", function(){
 });
 
 test("Selection", function(){
-  var component = new TreeSelectSingle($('#qunit-fixture > select'), {data: this.nodes, valueKey: 'id'});
+  var component = new TreeSelectSingle($('#qunit-fixture > select'), {data: this.nodes, valueKey: 'id', nameKey: 'name'});
   component.selectNode(component.nodeTree.findById(1));
   equal($('#qunit-fixture > select').val(), 1, "Selection state of select element is correct");
+  console.log(component.nodeTree.findById(1))
   equal($('div.tree-select div.btn.btn-default span.btn-title').html(), "parent 1", "Button title is rendered properly");
 });
 
