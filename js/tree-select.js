@@ -236,10 +236,8 @@
     },
 
     onProxyUpdated: function(evt){
-      console.log('onProxyUpdated');
       this.selection = this.getSelectionFromProxy();
       this.renderSelection();
-      console.log(this.selection);
     },
 
     onDropdownMouseEnter: function(evt){
