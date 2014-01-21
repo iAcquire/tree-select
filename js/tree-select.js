@@ -673,14 +673,19 @@
   };
 
   $.fn.treeSelect = function(options){
-    var settings = $.extend({}, defaults, options);
+    var settings = $.extend({}, defaults, options),
+        multiSelect;
 
     return this.each(function(){
+      multiSelect = $(this).attr('multiple');
+      if(options && typeof options.multiSelect !== 'undefined'){
+        multiSelect = options.multiSelect;
+      }
       if(this.selectView){
         // Remove the old component
         this.selectView.remove();
       }
-      if(settings.multiSelect){
+      if(multiSelect){
         $(this).attr('multiple','multiple');
         this.selectView = new TreeSelectMulti($(this), settings);
       }else{

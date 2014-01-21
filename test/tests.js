@@ -267,4 +267,5 @@ test("Plugin", function(){
   $('#qunit-fixture > select').treeSelect({multiSelect: false});
   equal($('.tree-select.multiple').length, 0, "Plugin renders correct component");
   equal($('.tree-select').length, 1, "Plugin renders correct component");
+
 });
