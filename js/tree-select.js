@@ -173,6 +173,9 @@
     }else if(options.dataUrl){
       if(!options.delayLoad){
         this.loadXHRData(options.dataUrl);
+      }else{
+        this.nodeTree.build(this.getNodesFromProxy());
+        this.selection = this.getSelectionFromProxy();
       }
     }else{
       this.hasData = true;
@@ -197,7 +200,12 @@
         }else{
           this.nodeTree.build(data);
         }
+        if(this.options.preserveSelection){
+          this.selection = this.getSelectionFromProxy();
+          this.renderSelection();
+        }
         this.populateProxy();
+        this.updateProxySelection();
         this.hasData = true;
         if(searchAfter === true){
           this.performSearch();
@@ -419,6 +427,7 @@
           valueKey = this.options.valueKey,
           nameKey = this.options.nameKey,
           i, item, $item;
+      this.$proxyEl.find('option').remove();
       $item = $('<option value=""></option>');
       this.$proxyEl.append($item);
       for(i = 0; i < length; i++){
@@ -433,6 +442,7 @@
           node;
       this.$proxyEl.find('option').each(function(){
         node = $(this).data();
+
         if(typeof node.id === 'undefined'){
           node.id = parseInt(this.value, 10);
         }
@@ -446,7 +456,6 @@
           node.parentId = 0;
         }
         delete node.parent;
-
         nodes.push(node);
       });
       return nodes;
@@ -658,6 +667,7 @@
 
   var defaults = {
     searchThreshold: 2,
+    preserveSelection: true,
     searchDelay: 250,
     delayLoad: false,
     multiSelect: false,
