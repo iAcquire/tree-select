@@ -232,10 +232,6 @@
   content: ' / ';
 }
 
-.tree-select{
-  margin: 10px;
-}
-
 .tree-select .btn > input{
   width: 96%;
   margin-right: 2%;
