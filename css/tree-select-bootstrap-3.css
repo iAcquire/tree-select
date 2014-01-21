@@ -47,3 +47,7 @@
   color: #999999;
   background-color: transparent;
 }
+
+.tree-select .list-group .list-group-item:first-child{
+  padding: 5px;
+}

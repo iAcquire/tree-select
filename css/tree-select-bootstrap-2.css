@@ -142,3 +142,7 @@ em::after{
   background-color: transparent;
   background-image: none;
 }
+
+.tree-select .list-group .list-group-item:first-child{
+  padding: 5px;
+}
