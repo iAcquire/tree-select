@@ -232,6 +232,12 @@
       this.$el.on('mouseleave', '.dropdown-menu', $.proxy(this.onDropdownMouseLeave, this));
       this.$el.on('mouseover', '.dropdown-menu > li > a', $.proxy(this.onResultOver, this));
       this.$el.on('click', '.dropdown-menu > li:not(.disabled) > a', $.proxy(this.onResultClick, this));
+      this.$el.on('tree-select:proxyUpdated', $.proxy(this.onProxyUpdated));
+    },
+
+    onProxyUpdated: function(evt){
+      this.getSelectionFromProxy();
+      this.renderSelection();
     },
 
     onDropdownMouseEnter: function(evt){
