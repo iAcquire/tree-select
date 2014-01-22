@@ -11,9 +11,8 @@
 }
 
 .tree-select .btn-title{
-  margin-right: 2%;
   display: inline-block;
-  width: 96%;
+  width: 95%;
   text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -24,11 +23,11 @@
 
 .tree-select .btn-title .glyphicon-remove{
   margin-top: 3px;
+  margin-right: 10px;
 }
 
 .tree-select .btn > input{
-  width: 96%;
-  margin-right: 2%;
+  width: 95%;
 }
 .tree-select .dropdown-menu{
   max-height: 300px;
