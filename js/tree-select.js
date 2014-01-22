@@ -220,6 +220,9 @@
     render: function(){
       this.$el = $('<div/>');
       this.$el.addClass('tree-select');
+      if(this.options.menuRight){
+        this.$el.addClass('menu-right');
+      }
       this.renderControl();
       this.$el.insertAfter(this.$proxyEl);
     },
@@ -683,6 +686,7 @@
     nameKey: 'name',
     searchKey: 'name',
     minDepth: false,
+    menuRight: false,
     allowSingleDeselect: false,
     transformData: function(data){
       return data;

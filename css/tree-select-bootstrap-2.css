@@ -158,3 +158,8 @@ em::after{
   line-height: 1.5;
   border-radius: 3px;
 }
+
+.tree-select.menu-right .dropdown-menu{
+  left: inherit;
+  right: 0px;
+}
