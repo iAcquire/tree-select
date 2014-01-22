@@ -50,3 +50,8 @@
 .tree-select .list-group .list-group-item:first-child{
   padding: 5px;
 }
+
+.tree-select.menu-right .dropdown-menu{
+  left: inherit;
+  right: 0px;
+}
