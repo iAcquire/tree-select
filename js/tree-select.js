@@ -295,6 +295,7 @@
       switch(evt.which){
         // Enter
         case 13:
+          evt.preventDefault();
           if(this.hoverIdx !== -1){
             var node = this.searchResults[this.hoverIdx];
             if(this.options.minDepth === false){
@@ -658,7 +659,7 @@
 
     renderSelectedItem: function(item){
       var $item = $('<li/>'),
-          $removeBtn = $('<button/>');
+          $removeBtn = $('<span/>');
       $item.addClass('list-group-item');
       $item.html(item[this.options.nameKey]);
       $item.attr('title', unescape(this.nodeTree.getNodePath(item).join(' / ')));
