@@ -1,4 +1,4 @@
-em::after{
+.tree-select em::after{
   content: ' / ';
 }
 
