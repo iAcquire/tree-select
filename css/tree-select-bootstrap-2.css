@@ -128,7 +128,9 @@ em::after{
   vertical-align: middle;
   margin-right: 10px;
 }
-
+.tree-select .dropdown-menu > li > a{
+  cursor: pointer;
+}
 .tree-select .dropdown-menu > li > a.hover{
   color: #ffffff;
   text-decoration: none;

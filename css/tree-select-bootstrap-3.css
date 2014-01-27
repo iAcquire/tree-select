@@ -35,7 +35,9 @@
   min-width: 100%;
 }
 
-
+.tree-select .dropdown-menu > li > a{
+  cursor: pointer;
+}
 .tree-select .dropdown-menu > li > a.hover{
   color: #262626;
   text-decoration: none;
