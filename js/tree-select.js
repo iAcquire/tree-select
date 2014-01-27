@@ -485,13 +485,33 @@
 
     },
 
+    _compare: function(a, b){
+      var result = 0,
+          nameKey = this.options.nameKey || 'name',
+          specificFirst = this.options.specificFirst || true;
+      if(a.depth > b.depth){
+        result = specificFirst ? -1 : 1;
+      }else if(a.depth < b.depth){
+        result = specificFirst ? 1 : -1;
+      }else{
+        if(this.nodeTree.getNodePath(a).join('') > this.nodeTree.getNodePath(b).join('')){
+          result = 1;
+        }else if(this.nodeTree.getNodePath(a).join('') < this.nodeTree.getNodePath(b).join('')){
+          result = -1;
+        }
+      }
+      return result;
+    },
+
     performSearch: function(){
       var search = this.$el.find('input[type="text"]').val(),
           searchThreshold = this.options.searchThreshold || 1;
+
       if(!this.hasData && this.options.delayLoad && this.options.dataUrl){
         this.loadXHRData(this.options.dataUrl, true);
       }else if(search && search.length >= searchThreshold){
         this.searchResults = this.nodeTree.search(search);
+        this.searchResults.sort($.proxy(this._compare, this));
         this.renderResults(this.searchResults, search);
         this.showSearchResults();
       }else{
@@ -688,6 +708,7 @@
     minDepth: false,
     menuRight: false,
     allowSingleDeselect: false,
+    specificFirst: true,
     transformData: function(data){
       return data;
     }
