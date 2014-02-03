@@ -429,6 +429,8 @@
         item = this.selection[i];
         this.$proxyEl.find('option[value="' + item[valueKey] + '"]').attr('selected', 'selected');
       }
+      // Trigger a change event on the proxy element
+      this.$proxyEl.trigger('change');
     },
 
     populateProxy: function(){
