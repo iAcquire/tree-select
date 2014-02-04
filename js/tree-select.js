@@ -182,18 +182,22 @@
     if(options.data){
       this.hasData = true;
       this.nodeTree.build(options.data);
+      this.initializeSelection();
       this.populateProxy();
     }else if(options.dataUrl){
       if(!options.delayLoad){
         this.loadXHRData(options.dataUrl);
       }else{
+        if(options.selectedIds){
+          console.warn('Selected ids have not been loaded, unable to render until data is loaded...');
+        }
         this.nodeTree.build(this.getNodesFromProxy());
-        this.selection = this.getSelectionFromProxy();
+        this.initializeSelection();
       }
     }else{
       this.hasData = true;
       this.nodeTree.build(this.getNodesFromProxy());
-      this.selection = this.getSelectionFromProxy();
+      this.initializeSelection();
     }
 
     this.render();
@@ -202,6 +206,27 @@
   };
 
   $.extend(TreeSelect.prototype, {
+
+    initializeSelection: function(){
+      if(this.options.selectedIds){
+        var i,
+            ids = this.options.selectedIds,
+            length = ids.length,
+            node;
+        this.selection = [];
+        for(i = 0; i < length; i++){
+          node = this.nodeTree.findById(ids[i]);
+          if(node){
+            this.selection.push(node);
+          }
+
+        }
+      }else if(this.options.selection){
+        this.selection = options.selection;
+      }else{
+        this.selection = this.getSelectionFromProxy();
+      }
+    },
 
     loadXHRData: function(dataUrl, searchAfter){
       $.ajax({
@@ -213,10 +238,8 @@
         }else{
           this.nodeTree.build(data);
         }
-        if(this.options.preserveSelection){
-          this.selection = this.getSelectionFromProxy();
-          this.renderSelection();
-        }
+        this.initializeSelection();
+        this.renderSelection();
         this.populateProxy();
         this.updateProxySelection();
         this.hasData = true;
