@@ -186,7 +186,7 @@ test("Events", function(){
 
   $('#qunit-fixture .tree-select .dropdown-menu a:first').trigger('click');
   equal(component.selection.length, 1, 'Item is selected');
-  equal(component.selection[0].id, 1, 'Item selected is correct');
+  equal(component.selection[0].id, 7, 'Item selected is correct');
   equal($('#qunit-fixture .tree-select .dropdown-menu').filter(':visible').length, 0, 'Dropdown is not visible');
 });
 

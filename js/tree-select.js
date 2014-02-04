@@ -80,6 +80,19 @@
       return node;
     },
 
+    findByProperty: function(prop, value){
+      var i,
+          length = this.nodes.length,
+          node = null;
+      for(i = 0; i < length; i++){
+        if(this.nodes[i][prop] == value){
+          node = this.nodes[i];
+          break;
+        }
+      }
+      return node;
+    },
+
     _transformNode: function(node){
       if(this.transformData){
         return this.transformData.call(this, node);
@@ -228,6 +241,7 @@
     },
 
     bindEvents: function(){
+      this.$proxyEl.on('change', $.proxy(this.onProxyUpdated, this));
       this.$el.on('keydown', 'input[type="text"]', $.proxy(this.onSearchKeyDown, this));
       this.$el.on('keyup', 'input[type="text"]', $.proxy(this.onSearchKeyUp, this));
       this.$el.on('blur', 'input[type="text"]', $.proxy(this.onSearchBlur, this));
@@ -235,7 +249,7 @@
       this.$el.on('mouseleave', '.dropdown-menu', $.proxy(this.onDropdownMouseLeave, this));
       this.$el.on('mouseover', '.dropdown-menu > li > a', $.proxy(this.onResultOver, this));
       this.$el.on('click', '.dropdown-menu > li:not(.disabled) > a', $.proxy(this.onResultClick, this));
-      this.$el.on('tree-select:proxyUpdated', $.proxy(this.onProxyUpdated, this));
+      // this.$el.on('tree-select:proxyUpdated', $.proxy(this.onProxyUpdated, this));
     },
 
     onProxyUpdated: function(evt){
@@ -476,9 +490,16 @@
     getSelectionFromProxy: function(){
       var selected = [],
           nodeTree = this.nodeTree,
-          node;
+          node,
+          value,
+          valueKey = this.options.valueKey;
       this.$proxyEl.find('option:selected').each(function(){
-        node = nodeTree.findById(parseInt($(this).val(),10));
+        value = $(this).val();
+        if(valueKey === 'id'){
+          node = nodeTree.findById(parseInt(value,10));
+        }else{
+          node = nodeTree.findByProperty(valueKey, value);
+        }
         if(node){
           selected.push(node);
         }
