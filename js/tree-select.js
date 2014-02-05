@@ -282,7 +282,6 @@
     },
 
     onSelectionUpdate: function(evt, selection){
-      console.log(evt, selection);
       if(selection){
         this.initializeSelection(selection);
         this.renderSelection();
