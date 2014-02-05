@@ -474,15 +474,16 @@
           length = nodes.length,
           valueKey = this.options.valueKey,
           nameKey = this.options.nameKey,
-          i, item, $item;
+          i, item,
+          items = [];
       this.$proxyEl.find('option').remove();
       $item = $('<option value=""></option>');
       this.$proxyEl.append($item);
       for(i = 0; i < length; i++){
         item = nodes[i];
-        $item = $('<option value="' + item[valueKey] + '">' + item[nameKey] + '</option>');
-        this.$proxyEl.append($item);
+        items.push('<option value="' + item[valueKey] + '">' + item[nameKey] + '</option>');
       }
+      this.$proxyEl.html(items.join(''));
     },
 
     getNodesFromProxy: function(){
