@@ -116,16 +116,15 @@
       var i,
           length = nodes.length,
           currNode = null,
-          remainingNodes = [];
-
-      node.children = [];
+          remainingNodes = [],
+          children = [];
 
       // Find all the node's children
       for(i = 0; i < length; i++){
         currNode = nodes[i];
         if(currNode.parentId === parentId){
           currNode.depth = node.depth + 1;
-          node.children.push(currNode);
+          children.push(currNode);
           currNode.parent = node;
         }else if(currNode.id !== node.id){
           remainingNodes.push(currNode);
@@ -133,11 +132,12 @@
       }
 
       // Find all of the children's children...
-      length = node.children.length;
+      length = children.length;
       for(i = 0; i < length; i++){
-        currNode = node.children[i];
+        currNode = children[i];
         this._buildBranch(currNode, remainingNodes, currNode.id);
       }
+      node.children = children;
     },
 
     build: function(nodes){
@@ -179,7 +179,11 @@
 
     this.hasData = false;
 
-    if(options.data){
+    if(options.nodeTree){
+      this.nodeTree = options.nodeTree;
+      this.initializeSelection();
+      this.populateProxy();
+    }else if(options.data){
       this.hasData = true;
       this.nodeTree.build(options.data);
       this.initializeSelection();
