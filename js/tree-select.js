@@ -482,7 +482,6 @@
           items = [];
       this.$proxyEl.find('option').remove();
       items.push('<option value=""></option>');
-      this.$proxyEl.append($item);
       for(i = 0; i < length; i++){
         item = nodes[i];
         items.push('<option value="' + item[valueKey] + '">' + item[nameKey] + '</option>');
