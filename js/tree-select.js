@@ -215,10 +215,12 @@
       if(ids){
         var i,
             length = ids.length,
+            id,
             node;
         this.selection = [];
         for(i = 0; i < length; i++){
-          node = this.nodeTree.findById(ids[i]);
+          id = parseInt(ids[i],10);
+          node = this.nodeTree.findById(id);
           if(node){
             this.selection.push(node);
           }
