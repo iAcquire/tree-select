@@ -480,7 +480,6 @@
           nameKey = this.options.nameKey,
           i, item,
           items = [];
-      this.$proxyEl.find('option').remove();
       items.push('<option value=""></option>');
       for(i = 0; i < length; i++){
         item = nodes[i];
