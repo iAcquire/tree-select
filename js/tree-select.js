@@ -55,7 +55,7 @@
           length = this.nodes.length,
           node,
           results = [],
-          // Escape the search text so we don't throw exceptions for bad regex patterns
+      // Escape the search text so we don't throw exceptions for bad regex patterns
           regex = new RegExp(search.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1"),'i');
 
       for(i = 0; i < length; i++){
@@ -211,10 +211,9 @@
 
   $.extend(TreeSelect.prototype, {
 
-    initializeSelection: function(){
-      if(this.options.selectedIds){
+    initializeSelection: function(ids){
+      if(ids){
         var i,
-            ids = this.options.selectedIds,
             length = ids.length,
             node;
         this.selection = [];
@@ -225,8 +224,6 @@
           }
 
         }
-      }else if(this.options.selection){
-        this.selection = options.selection;
       }else{
         this.selection = this.getSelectionFromProxy();
       }
@@ -237,20 +234,20 @@
         url: dataUrl,
         dataType: 'json'
       }).done($.proxy(function(data){
-        if(this.options.dataPath){
-          this.nodeTree.build(getObjectProperty(data, this.options.dataPath));
-        }else{
-          this.nodeTree.build(data);
-        }
-        this.initializeSelection();
-        this.renderSelection();
-        this.populateProxy();
-        this.updateProxySelection();
-        this.hasData = true;
-        if(searchAfter === true){
-          this.performSearch();
-        }
-      },this));
+            if(this.options.dataPath){
+              this.nodeTree.build(getObjectProperty(data, this.options.dataPath));
+            }else{
+              this.nodeTree.build(data);
+            }
+            this.initializeSelection();
+            this.renderSelection();
+            this.populateProxy();
+            this.updateProxySelection();
+            this.hasData = true;
+            if(searchAfter === true){
+              this.performSearch();
+            }
+          },this));
     },
 
     remove: function(){
@@ -287,7 +284,7 @@
     onSelectionUpdate: function(evt, selection){
       console.log(evt, selection);
       if(selection){
-        this.selection = selection;
+        this.initializeSelection(selection);
         this.renderSelection();
       }
     },
@@ -438,7 +435,7 @@
       var $item,
           path = this.nodeTree.getNodePath(result),
           parts = [];
-          length = path.length;
+      length = path.length;
       for(i = 0; i < length; i++){
         if(i == length - 1){
           parts.push('<strong>' + path[i] + '</strong>');
